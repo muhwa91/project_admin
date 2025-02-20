@@ -1,15 +1,12 @@
 <template>
-    <div class="login_container">
-        <form @submit.prevent="login_request">
-            <!-- 임시 이미지 영역 -->
-            <div class="login_image_section"></div>
-            <!-- 임시 이미지 영역 -->
+    <div class="login_container flex flex-col justify-between h-full">
+        <form @submit.prevent="login_request" class="flex flex-col flex-grow">
             <div class="login_input_section">
                 <input
                     class="login_input"
                     type="text"
-                    name="user_id"
-                    v-model="user_id"
+                    name="id"
+                    v-model="login_form_data.id"
                     placeholder=""
                     autocomplete="off"
                 />
@@ -20,13 +17,16 @@
                     class="login_input"
                     type="password"
                     name="password"
-                    v-model="password"
+                    v-model="login_form_data.password"
                     placeholder=""
                 />
                 <label class="login_label">비밀번호</label>
             </div>
-            <div class="login_button_section flex justify-center">
-                <button type="submit" class="login_button">Login</button>
+            <div v-if="error_msg" class="login_error_section text-red-500 text-center">
+                <span>{{ error_msg }}</span>
+            </div>
+            <div class="login_button_section flex justify-center mt-auto">
+                <button type="submit" class="btn text-red-500">Login</button>
             </div>              
         </form>
     </div>
@@ -34,17 +34,47 @@
 
 <script>
 import "@/styles/auth/login.scss";
+import { reactive, ref, getCurrentInstance, } from "vue";
+
 export default {
-    data() {
-        return {
-            user_id: '',
-            password: ''
+    setup() {
+        const { proxy } = getCurrentInstance();
+        const store = proxy.$store;
+
+        const login_form_data = reactive({
+            id: "",
+            password: ""
+        });
+
+        const error_msg = ref("");
+
+        const login_request = () => {
+
+            if (!login_form_data.id && !login_form_data.password) {
+                error_msg.value = "로그인 정보를 입력해주세요.";
+                return;
+            } else if (!login_form_data.id) {
+                error_msg.value = "아이디를 입력해주세요.";
+                return;
+            } else if (!login_form_data.password) {
+                error_msg.value = "비밀번호를 입력해주세요.";
+                return;
+            } 
+
+            console.log("로그인 요청:", login_form_data);
+
+            // const form_data = new FormData();
+            // form_data.append("id", login_form_data.id);
+            // form_data.append("password", login_form_data.password);
+
+            // store.dispatch("login", login_form_data);
         };
-    },
-    methods: {
-        login_request() {
-            console.log('로그인 요청:', { user_id: this.user_id, password: this.password });
-        }
+
+        return {
+            login_form_data,
+            error_msg,
+            login_request,
+        };
     }
 };
 </script>
