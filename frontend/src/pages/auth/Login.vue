@@ -39,6 +39,7 @@ import { reactive, ref, getCurrentInstance, } from "vue";
 export default {
     setup() {
         const { proxy } = getCurrentInstance();
+        const api = proxy.$api;
         const store = proxy.$store;
 
         const login_form_data = reactive({
@@ -48,7 +49,7 @@ export default {
 
         const error_msg = ref("");
 
-        const login_request = () => {
+        const login_request = async () => {
 
             if (!login_form_data.id && !login_form_data.password) {
                 error_msg.value = "로그인 정보를 입력해주세요.";
@@ -61,11 +62,25 @@ export default {
                 return;
             } 
 
-            console.log("로그인 요청:", login_form_data);
+            const form_data = new FormData();
+            form_data.append("id", login_form_data.id);
+            form_data.append("password", login_form_data.password);
 
-            // const form_data = new FormData();
-            // form_data.append("id", login_form_data.id);
-            // form_data.append("password", login_form_data.password);
+            try {
+                const response = await api.post("/login", form_data);
+
+                if (response.data.success) {
+                    // store.commit("setUser", response.data.user); 
+                    error_msg.value = "";
+                    alert("로그인 성공!");
+                } else {
+                    error_msg.value = response.data.message || "로그인 실패!";
+                }
+            } catch (error) {
+                console.error(error);
+                error_msg.value = "서버 오류가 발생했습니다.";
+            }
+
 
             // store.dispatch("login", login_form_data);
         };
